@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Controle de Viaturas - EB</title>
+  <style>
+    /* Reset & Base Setup */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #090d16;
+      color: #e2e8f0;
+      font-size: 13px;
+      line-height: 1.35;
+      padding-bottom: 24px;
+      min-height: 100vh;
+    }
+
+    /* Typography & Utilities */
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .uppercase { text-transform: uppercase; }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Compact Layout Container */
+    .app-container {
+      max-width: 768px;
+      margin: 0 auto;
+      padding: 6px;
+    }
+
+    /* Header Bar */
+    .header-bar {
+      background: linear-gradient(180deg, #162032 0%, #0f172a 100%);
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .brand-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #f8fafc;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-badge {
+      background: #15803d;
+      color: #f0fdf4;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border: 1px solid #22c55e;
+      letter-spacing: 0.5px;
+    }
+
+    .header-date {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    /* Small Utility Buttons */
+    .btn-icon {
+      background: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      border-radius: 5px;
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 32px;
+      transition: all 0.15s ease;
+    }
+    .btn-icon:active { background: #334155; transform: scale(0.97); }
+    .btn-icon.danger { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
+
+    /* Counter Strip */
+    .counter-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    .stat-card {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 6px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .stat-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .stat-value {
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-top: 2px;
+    }
+
+    .stat-mission { color: #f59e0b; }
+    .stat-pending { color: #ef4444; }
+    .stat-ok { color: #22c55e; }
+    .stat-total { color: #38bdf8; }
+
+    /* Panel Card */
+    .panel-card {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 8px;
+      margin-bottom: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+
+    /* Mode Selector Toggle Switch */
+    .mode-toggle-container {
+      display: flex;
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 2px;
+      margin-bottom: 6px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      padding: 6px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+
+    .mode-btn.active-saida {
+      background: #1e293b;
+      color: #38bdf8;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .mode-btn.active-entrada {
+      background: #312e81;
+      color: #a5b4fc;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    /* Main Command Form */
+    .cmd-form {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    .plate-input-wrapper {
+      position: relative;
+      flex: 1;
+    }
+
+    .cmd-input {
+      width: 100%;
+      height: 38px;
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #ffffff;
+      font-family: ui-monospace, monospace;
+      font-size: 16px;
+      font-weight: 800;
+      padding: 0 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .cmd-input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
+    .btn-submit {
+      height: 38px;
+      padding: 0 14px;
+      background: #166534;
+      color: #f0fdf4;
+      border: 1px solid #22c55e;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+    }
+
+    .btn-submit:active {
+      background: #15803d;
+      transform: scale(0.98);
+    }
+
+    /* Quick Type Selector Buttons */
+    .type-selector-row {
+      display: flex;
+      gap: 4px;
+    }
+
+    .type-chip-btn {
+      flex: 1;
+      height: 32px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 5px;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      transition: all 0.15s;
+    }
+
+    .type-chip-btn.selected {
+      border-color: #60a5fa;
+      color: #ffffff;
+      background: #2563eb;
+    }
+
+    /* Type Badges */
+    .badge-type {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .badge-O { background: #14532d; color: #4ade80; border: 1px solid #16a34a; }
+    .badge-V { background: #1e3a8a; color: #60a5fa; border: 1px solid #2563eb; }
+    .badge-C { background: #581c87; color: #c084fc; border: 1px solid #9333ea; }
+    .badge-OT { background: #0e7490; color: #22d3ee; border: 1px solid #06b6d4; }
+    .badge-avulsa { background: #431407; color: #fb923c; border: 1px solid #ea580c; font-size: 9px; padding: 1px 4px; }
+
+    /* Live Suggestion Chips */
+    .suggestions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 6px;
+      min-height: 0;
+    }
+
+    .suggestion-chip {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #38bdf8;
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .suggestion-chip.chip-mission {
+      background: #451a03;
+      border-color: #b45309;
+      color: #fbbf24;
+    }
+
+    /* Section Headers */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      padding: 2px 0;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: #cbd5e1;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-count {
+      background: #1e293b;
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+
+    /* Cards Grid / List */
+    .cards-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .item-card {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 6px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .item-card.is-ok {
+      border-left: 3px solid #22c55e;
+    }
+
+    .item-card.is-pending {
+      border-left: 3px solid #ef4444;
+    }
+
+    .item-card.is-mission {
+      border-left: 3px solid #f59e0b;
+    }
+
+    .card-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .card-plate {
+      font-family: ui-monospace, monospace;
+      font-size: 14px;
+      font-weight: 800;
+      color: #f8fafc;
+      letter-spacing: 0.5px;
+    }
+
+    .card-times {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .time-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .time-val { color: #f1f5f9; font-weight: 700; }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    /* Action Buttons inside Cards */
+    .btn-card-act {
+      height: 30px;
+      padding: 0 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
+
+    .btn-act-ok { background: #166534; color: #dcfce7; border-color: #22c55e; }
+    .btn-act-ok:active { background: #15803d; }
+    .btn-act-return { background: #1e3a8a; color: #dbeafe; border-color: #3b82f6; }
+    .btn-act-edit { background: #1e293b; color: #cbd5e1; border-color: #334155; width: 30px; padding: 0; }
+    .btn-act-delete { background: #290e0e; color: #fca5a5; border-color: #7f1d1d; min-width: 30px; padding: 0 6px; }
+    .btn-act-delete.confirming { background: #991b1b; color: #ffffff; font-weight: 800; }
+
+    /* Bulk OK Button */
+    .btn-bulk-ok {
+      background: #14532d;
+      color: #4ade80;
+      border: 1px solid #16a34a;
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 10px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .btn-bulk-ok.confirming {
+      background: #dc2626;
+      color: #fff;
+      border-color: #ef4444;
+    }
+
+    /* Section 3: Filter Tabs & Table Layout */
+    .filter-tabs {
+      display: flex;
+      gap: 3px;
+      margin-bottom: 6px;
+      background: #020617;
+      padding: 2px;
+      border-radius: 6px;
+      border: 1px solid #1e293b;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 5px 2px;
+      font-size: 10px;
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .tab-btn.active {
+      background: #1e293b;
+      color: #f8fafc;
+    }
+
+    /* List Table View */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      background: #020617;
+    }
+
+    .dense-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      text-align: left;
+    }
+
+    .dense-table th {
+      background: #0f172a;
+      color: #64748b;
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 6px 6px;
+      border-bottom: 1px solid #1e293b;
+      white-space: nowrap;
+    }
+
+    .dense-table td {
+      padding: 5px 6px;
+      border-bottom: 1px solid #1e293b;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    .dense-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .status-pill {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .status-pill.ok { background: #14532d; color: #4ade80; }
+    .status-pill.pending { background: #7f1d1d; color: #fca5a5; }
+    .status-pill.mission { background: #78350f; color: #fde047; }
+
+    /* Modals Base */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(2, 6, 23, 0.85);
+      backdrop-filter: blur(2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 440px;
+      padding: 14px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 8px;
+    }
+
+    .modal-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+
+    .form-input {
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 5px;
+      color: #fff;
+      padding: 8px;
+      font-size: 13px;
+      outline: none;
+    }
+    .form-input:focus { border-color: #3b82f6; }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .btn-modal {
+      padding: 8px 14px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+
+    .btn-modal-cancel { background: #1e293b; color: #94a3b8; border-color: #334155; }
+    .btn-modal-primary { background: #2563eb; color: #fff; }
+    .btn-modal-danger { background: #dc2626; color: #fff; }
+
+    /* Toast Notification */
+    #toast-container {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      pointer-events: none;
+      width: calc(100% - 24px);
+      max-width: 360px;
+    }
+
+    .toast {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      animation: toastIn 0.2s ease-out;
+    }
+    .toast.success { border-left: 4px solid #22c55e; }
+    .toast.error { border-left: 4px solid #ef4444; }
+    .toast.info { border-left: 4px solid #3b82f6; }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Helper empty state */
+    .empty-state {
+      text-align: center;
+      padding: 12px;
+      color: #64748b;
+      font-size: 11px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Compact Header Bar -->
+    <header class="header-bar">
+      <div class="brand-title">
+        <span>VIATURAS</span>
+        <span class="brand-badge">EB</span>
+      </div>
+      <div class="header-date" id="current-date-display">--/--/----</div>
+      <div class="header-actions">
+        <button class="btn-icon" id="btn-open-import" title="Importar Relatório/CSV">📥 Importar</button>
+        <button class="btn-icon" id="btn-copy-report" title="Copiar Ficha Formatada">📋 Copiar</button>
+        <button class="btn-icon" id="btn-export-csv" title="Exportar CSV">📊 CSV</button>
+        <button class="btn-icon danger" id="btn-open-clear" title="Limpar Ficha do Dia">🗑️</button>
+      </div>
+    </header>
+
+    <!-- Compact Counter Strip -->
+    <section class="counter-strip">
+      <div class="stat-card">
+        <span class="stat-label">Em Missão</span>
+        <span class="stat-value stat-mission" id="cnt-mission">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Pendentes</span>
+        <span class="stat-value stat-pending" id="cnt-pending">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Conferidos</span>
+        <span class="stat-value stat-ok" id="cnt-ok">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Total Dia</span>
+        <span class="stat-value stat-total" id="cnt-total">0</span>
+      </div>
+    </section>
+
+    <!-- Command Input Panel -->
+    <section class="panel-card">
+      <div class="mode-toggle-container">
+        <button type="button" class="mode-btn active-saida" id="mode-saida-btn">Saída (Padrão)</button>
+        <button type="button" class="mode-btn" id="mode-entrada-btn">+ Entrada Avulsa</button>
+      </div>
+
+      <form id="cmd-form" class="cmd-form" autocomplete="off" onsubmit="return false;">
+        <div class="plate-input-wrapper">
+          <input 
+            type="text" 
+            id="cmd-plate-input" 
+            class="cmd-input" 
+            placeholder="PLACA OU +PLACA [TIPO]"
+            autocapitalize="characters"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+            inputmode="text"
+          />
+        </div>
+        <button type="submit" class="btn-submit" id="btn-submit-cmd">REGISTRAR</button>
+      </form>
+
+      <!-- Quick Type Buttons -->
+      <div class="type-selector-row">
+        <button type="button" class="type-chip-btn" data-type="O">[O] Ônibus</button>
+        <button type="button" class="type-chip-btn" data-type="V">[V] Van</button>
+        <button type="button" class="type-chip-btn" data-type="C">[C] Carro</button>
+        <button type="button" class="type-chip-btn" data-type="OT">[OT] Outras</button>
+      </div>
+
+      <!-- Live Suggestion Chips -->
+      <div id="suggestions-row" class="suggestions-row"></div>
+    </section>
+
+    <!-- Section 1: Em Missão -->
+    <section class="panel-card">
+      <div class="section-header">
+        <div class="section-title">
+          <span>🚗 EM MISSÃO (FORA)</span>
+          <span class="section-count" id="count-sec-mission">0</span>
+        </div>
+      </div>
+      <div id="grid-mission" class="cards-grid"></div>
+    </section>
+
+    <!-- Section 2: Pendentes de Ficha -->
+    <section class="panel-card">
+      <div class="section-header">
+        <div class="section-title">
+          <span>⏳ PENDENTES DE FICHA (AGUARDANDO OK)</span>
+          <span class="section-count" id="count-sec-pending">0</span>
+        </div>
+        <button type="button" class="btn-bulk-ok" id="btn-bulk-ok">✓ OK em Todos</button>
+      </div>
+      <div id="grid-pending" class="cards-grid"></div>
+    </section>
+
+    <!-- Section 3: Ficha do Dia -->
+    <section class="panel-card">
+      <div class="section-header">
+        <div class="section-title">
+          <span>📋 FICHA COMPLETA DO DIA</span>
+          <span class="section-count" id="count-sec-total">0</span>
+        </div>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="filter-tabs">
+        <button type="button" class="tab-btn active" data-filter="all">Todos</button>
+        <button type="button" class="tab-btn" data-filter="pending">Pendentes OK</button>
+        <button type="button" class="tab-btn" data-filter="mission">Em Missão</button>
+        <button type="button" class="tab-btn" data-filter="ok">Conferidos</button>
+      </div>
+
+      <!-- Compact Table -->
+      <div class="table-container">
+        <table class="dense-table">
+          <thead>
+            <tr>
+              <th>Placa</th>
+              <th>Tipo</th>
+              <th>Saída</th>
+              <th>Entrada</th>
+              <th>Status</th>
+              <th style="text-align: right;">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- EDIT RECORD MODAL -->
+  <div class="modal-overlay" id="modal-edit">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Editar Registro</h3>
+        <button class="modal-close" onclick="closeModal('modal-edit')">&times;</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Placa da Viatura</label>
+        <input 
+          type="text" 
+          id="edit-plate" 
+          class="form-input mono uppercase" 
+          autocapitalize="characters"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+          inputmode="text"
+        />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo de Viatura</label>
+        <div class="type-selector-row">
+          <button type="button" class="type-chip-btn edit-type-btn" data-type="O">[O] Ônibus</button>
+          <button type="button" class="type-chip-btn edit-type-btn" data-type="V">[V] Van</button>
+          <button type="button" class="type-chip-btn edit-type-btn" data-type="C">[C] Carro</button>
+          <button type="button" class="type-chip-btn edit-type-btn" data-type="OT">[OT] Outras</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Horário de Saída</label>
+        <div style="display: flex; gap: 4px;">
+          <input type="time" id="edit-saida" class="form-input" style="flex:1;">
+          <button type="button" class="btn-icon" id="btn-clear-saida">Limpar (—)</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Horário de Entrada</label>
+        <div style="display: flex; gap: 4px;">
+          <input type="time" id="edit-entrada" class="form-input" style="flex:1;">
+          <button type="button" class="btn-icon" id="btn-set-entrada-now">⚡ Agora</button>
+          <button type="button" class="btn-icon" id="btn-set-entrada-mission">Em Missão</button>
+        </div>
+      </div>
+      <div class="form-group" style="flex-direction: row; align-items: center; justify-content: space-between; margin-top: 4px;">
+        <label class="form-label" style="margin:0;">Status Ficha OK</label>
+        <input type="checkbox" id="edit-ok" style="width: 20px; height: 20px;">
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" onclick="closeModal('modal-edit')">Cancelar</button>
+        <button class="btn-modal btn-modal-primary" id="btn-save-edit">Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMPORT MODAL -->
+  <div class="modal-overlay" id="modal-import">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Importar Relatório / CSV</h3>
+        <button class="modal-close" onclick="closeModal('modal-import')">&times;</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cole o Relatório formatado ou CSV abaixo:</label>
+        <textarea id="import-text" class="form-input mono" rows="6" placeholder="PLACA | VIATURA | SAÍDA | ENTRADA | STATUS... ou CSV"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ou selecione um arquivo (.csv / .txt):</label>
+        <input type="file" id="import-file-input" accept=".csv, .txt" class="form-input">
+      </div>
+      <div class="form-group" style="background: #020617; padding: 6px; border-radius: 4px; border: 1px solid #1e293b;">
+        <label class="form-label" style="font-size: 10px; color: #94a3b8;">Fallback para relatórios sem coluna de Status:</label>
+        <select id="import-legacy-status" class="form-input" style="padding: 4px; font-size: 11px;">
+          <option value="pending">Marcar concluídos sem status como PENDENTE OK</option>
+          <option value="ok">Marcar concluídos sem status como FICHA OK (Conferido)</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" onclick="closeModal('modal-import')">Cancelar</button>
+        <button class="btn-modal btn-modal-primary" id="btn-confirm-import">Processar Importação</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CSV FALLBACK MODAL -->
+  <div class="modal-overlay" id="modal-csv-fallback">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Exportação CSV</h3>
+        <button class="modal-close" onclick="closeModal('modal-csv-fallback')">&times;</button>
+      </div>
+      <p style="font-size: 11px; color: #cbd5e1;">O download automático pode estar desativado no seu navegador. Copie o texto CSV abaixo:</p>
+      <textarea id="csv-fallback-text" class="form-input mono" rows="8" readonly></textarea>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" onclick="closeModal('modal-csv-fallback')">Fechar</button>
+        <button class="btn-modal btn-modal-primary" id="btn-copy-csv-text">Copiar CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLEAR ALL MODAL -->
+  <div class="modal-overlay" id="modal-clear">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color: #ef4444;">Limpar Todos os Registros</h3>
+        <button class="modal-close" onclick="closeModal('modal-clear')">&times;</button>
+      </div>
+      <p style="font-size: 12px; color: #cbd5e1;">Tem certeza que deseja apagar a ficha inteira de hoje? Esta ação não pode ser desfeita.</p>
+      <div class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" onclick="closeModal('modal-clear')">Cancelar</button>
+        <button class="btn-modal btn-modal-danger" id="btn-confirm-clear">Sim, Limpar Tudo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC -->
+  <script>
+    // --- STATE MANAGEMENT ---
+    let records = [];
+    let plateMemory = {};
+    let selectedType = 'C'; // Default vehicle type
+    let isEntradaAvulsaMode = false;
+    let currentFilter = 'all';
+    let editingId = null;
+
+    const VEHICLE_TYPES = {
+      'O': { name: 'Ônibus', badgeClass: 'badge-O' },
+      'V': { name: 'Van', badgeClass: 'badge-V' },
+      'C': { name: 'Carro', badgeClass: 'badge-C' },
+      'OT': { name: 'Outras', badgeClass: 'badge-OT' }
+    };
+
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      loadStorage();
+      updateDateDisplay();
+      setupUppercaseInputEnforcement();
+      setupEventListeners();
+      renderAll();
+    });
+
+    // --- STORAGE ---
+    function loadStorage() {
+      try {
+        const savedRecs = localStorage.getItem('eb_records_v2');
+        if (savedRecs) records = JSON.parse(savedRecs);
+
+        const savedMem = localStorage.getItem('eb_plate_memory');
+        if (savedMem) plateMemory = JSON.parse(savedMem);
+      } catch (e) {
+        console.error('Error loading storage', e);
+        records = [];
+        plateMemory = {};
+      }
+    }
+
+    function saveStorage() {
+      try {
+        localStorage.setItem('eb_records_v2', JSON.stringify(records));
+        localStorage.setItem('eb_plate_memory', JSON.stringify(plateMemory));
+      } catch (e) {
+        console.error('Error saving storage', e);
+      }
+    }
+
+    // --- DATE DISPLAY ---
+    function updateDateDisplay() {
+      const now = new Date();
+      const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+      const dayName = days[now.getDay()];
+      const dateStr = now.toLocaleDateString('pt-BR');
+      document.getElementById('current-date-display').textContent = `${dateStr} — ${dayName}`;
+    }
+
+    function getHHMM() {
+      const d = new Date();
+      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+
+    // --- AUTOMATIC UPPERCASE INPUT ENFORCEMENT ---
+    function forceUppercase(inputEl) {
+      if (!inputEl) return;
+      const start = inputEl.selectionStart;
+      const end = inputEl.selectionEnd;
+      inputEl.value = inputEl.value.toUpperCase();
+      if (start !== null && end !== null) {
+        try { inputEl.setSelectionRange(start, end); } catch (e) {}
+      }
+    }
+
+    function setupUppercaseInputEnforcement() {
+      const mainInput = document.getElementById('cmd-plate-input');
+      const editInput = document.getElementById('edit-plate');
+
+      [mainInput, editInput].forEach(input => {
+        if (!input) return;
+        input.addEventListener('input', () => {
+          forceUppercase(input);
+          if (input === mainInput) handleLiveSuggestions();
+        });
+      });
+    }
+
+    // --- EVENT LISTENERS ---
+    function setupEventListeners() {
+      // Main input submit
+      document.getElementById('cmd-form').addEventListener('submit', handleCommandSubmit);
+
+      // Mode toggles
+      document.getElementById('mode-saida-btn').addEventListener('click', () => setInputMode(false));
+      document.getElementById('mode-entrada-btn').addEventListener('click', () => setInputMode(true));
+
+      // Type Selector Buttons
+      document.querySelectorAll('.type-chip-btn[data-type]').forEach(btn => {
+        if (btn.classList.contains('edit-type-btn')) return;
+        btn.addEventListener('click', () => {
+          selectedType = btn.dataset.type;
+          updateTypeSelectorUI();
+        });
+      });
+
+      // Filter tabs
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFilter = btn.dataset.filter;
+          renderTable();
+        });
+      });
+
+      // Bulk OK Button with inline 2-step confirmation
+      setupBulkOkButton();
+
+      // Header Utility Buttons
+      document.getElementById('btn-copy-report').addEventListener('click', copyFormattedReport);
+      document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
+      document.getElementById('btn-open-import').addEventListener('click', () => openModal('modal-import'));
+      document.getElementById('btn-open-clear').addEventListener('click', () => openModal('modal-clear'));
+      document.getElementById('btn-confirm-clear').addEventListener('click', clearAllRecords);
+
+      // Import modal handlers
+      document.getElementById('btn-confirm-import').addEventListener('click', processImport);
+      document.getElementById('import-file-input').addEventListener('change', handleFileInput);
+
+      // CSV Fallback copy
+      document.getElementById('btn-copy-csv-text').addEventListener('click', () => {
+        const txt = document.getElementById('csv-fallback-text').value;
+        copyToClipboard(txt, 'CSV copiado para a área de transferência!');
+        closeModal('modal-csv-fallback');
+      });
+
+      // Edit Modal Actions
+      document.querySelectorAll('.edit-type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.edit-type-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+        });
+      });
+
+      document.getElementById('btn-clear-saida').addEventListener('click', () => {
+        document.getElementById('edit-saida').value = '';
+      });
+
+      document.getElementById('btn-set-entrada-now').addEventListener('click', () => {
+        document.getElementById('edit-entrada').value = getHHMM();
+      });
+
+      document.getElementById('btn-set-entrada-mission').addEventListener('click', () => {
+        document.getElementById('edit-entrada').value = '';
+      });
+
+      document.getElementById('btn-save-edit').addEventListener('click', saveEditModal);
+    }
+
+    // --- UI UPDATES & TYPE SELECTORS ---
+    function setInputMode(isAvulsa) {
+      isEntradaAvulsaMode = isAvulsa;
+      const saidaBtn = document.getElementById('mode-saida-btn');
+      const entradaBtn = document.getElementById('mode-entrada-btn');
+      if (isAvulsa) {
+        saidaBtn.className = 'mode-btn';
+        entradaBtn.className = 'mode-btn active-entrada';
+      } else {
+        saidaBtn.className = 'mode-btn active-saida';
+        entradaBtn.className = 'mode-btn';
+      }
+    }
+
+    function updateTypeSelectorUI() {
+      document.querySelectorAll('.type-chip-btn[data-type]').forEach(btn => {
+        if (btn.classList.contains('edit-type-btn')) return;
+        if (btn.dataset.type === selectedType) {
+          btn.classList.add('selected');
+        } else {
+          btn.classList.remove('selected');
+        }
+      });
+    }
+
+    // --- PLATE PARSING & COMMAND SUBMISSION ---
+    function parseInput(raw) {
+      let str = raw.trim().toUpperCase();
+      let forceAvulsa = false;
+
+      if (str.startsWith('+')) {
+        forceAvulsa = true;
+        str = str.substring(1).trim();
+      }
+
+      const parts = str.split(/\s+/);
+      const plateCandidate = parts[0] ? parts[0].replace('-', '') : '';
+      let typeCandidate = parts[1] || null;
+
+      if (typeCandidate && !VEHICLE_TYPES[typeCandidate]) {
+        typeCandidate = null;
+      }
+
+      return {
+        plate: plateCandidate,
+        explicitType: typeCandidate,
+        forceAvulsa: forceAvulsa
+      };
+    }
+
+    function handleCommandSubmit() {
+      const inputEl = document.getElementById('cmd-plate-input');
+      const raw = inputEl.value;
+      if (!raw.trim()) return;
+
+      const parsed = parseInput(raw);
+      if (!parsed.plate || parsed.plate.length < 5) {
+        showToast('Placa inválida ou muito curta!', 'error');
+        return;
+      }
+
+      const plate = parsed.plate;
+      const isAvulsa = parsed.forceAvulsa || isEntradaAvulsaMode;
+      
+      // Determine Type: explicit in input -> selectedType -> plateMemory -> 'C'
+      let finalType = parsed.explicitType || selectedType;
+      if (!parsed.explicitType && plateMemory[plate]) {
+        finalType = plateMemory[plate];
+      }
+
+      // Update plate memory
+      plateMemory[plate] = finalType;
+
+      const nowTime = getHHMM();
+
+      if (isAvulsa) {
+        // ENTRADA AVULSA: Saída: —, Entrada: HH:MM, Ficha OK: false
+        const newRecord = {
+          id: Date.now().toString() + Math.random().toString(36).substr(2, 4),
+          plate: plate,
+          type: finalType,
+          saida: '—',
+          entrada: nowTime,
+          isAvulsa: true,
+          fichaOk: false,
+          timestamp: Date.now()
+        };
+        records.unshift(newRecord);
+        showToast(`Entrada Avulsa registrada: ${plate} (${finalType}) às ${nowTime}`, 'success');
+        setInputMode(false); // Reset to Saída mode after avulsa
+      } else {
+        // STANDARD MODE
+        // Check if vehicle is currently "Em Missão" (has salida, no entrada)
+        const activeMissionIndex = records.findIndex(r => r.plate === plate && r.saida !== '—' && (r.entrada === '—' || !r.entrada));
+
+        if (activeMissionIndex !== -1) {
+          // Register Return
+          records[activeMissionIndex].entrada = nowTime;
+          records[activeMissionIndex].fichaOk = false;
+          showToast(`Retorno (Entrada) registrado: ${plate} às ${nowTime}`, 'success');
+        } else {
+          // Register Departure (Saída)
+          const newRecord = {
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 4),
+            plate: plate,
+            type: finalType,
+            saida: nowTime,
+            entrada: '—',
+            isAvulsa: false,
+            fichaOk: false,
+            timestamp: Date.now()
+          };
+          records.unshift(newRecord);
+          showToast(`Saída registrada: ${plate} (${finalType}) às ${nowTime}`, 'success');
+        }
+      }
+
+      inputEl.value = '';
+      saveStorage();
+      renderAll();
+    }
+
+    // --- LIVE SUGGESTIONS ---
+    function handleLiveSuggestions() {
+      const container = document.getElementById('suggestions-row');
+      const val = document.getElementById('cmd-plate-input').value.trim().toUpperCase().replace('+', '').replace('-', '');
+      container.innerHTML = '';
+
+      if (!val) return;
+
+      // Check active mission matches
+      const activeMissions = records.filter(r => r.saida !== '—' && r.entrada === '—' && r.plate.includes(val));
+      
+      activeMissions.forEach(rec => {
+        const chip = document.createElement('div');
+        chip.className = 'suggestion-chip chip-mission';
+        chip.innerHTML = `<span>✓ Dar Entrada: <strong>${rec.plate}</strong> (${rec.type})</span>`;
+        chip.onclick = () => {
+          registerReturn(rec.id);
+          document.getElementById('cmd-plate-input').value = '';
+          container.innerHTML = '';
+        };
+        container.appendChild(chip);
+      });
+
+      // Memory matches (not in mission)
+      Object.keys(plateMemory).forEach(memPlate => {
+        if (memPlate.includes(val) && !activeMissions.some(m => m.plate === memPlate)) {
+          const chip = document.createElement('div');
+          chip.className = 'suggestion-chip';
+          chip.innerHTML = `<span>${memPlate} [${plateMemory[memPlate]}]</span>`;
+          chip.onclick = () => {
+            document.getElementById('cmd-plate-input').value = memPlate + ' ';
+            selectedType = plateMemory[memPlate];
+            updateTypeSelectorUI();
+            container.innerHTML = '';
+            document.getElementById('cmd-plate-input').focus();
+          };
+          container.appendChild(chip);
+        }
+      });
+    }
+
+    // --- RENDER LOGIC ---
+    function renderAll() {
+      updateTypeSelectorUI();
+      renderCounters();
+      renderSectionMission();
+      renderSectionPending();
+      renderTable();
+      handleLiveSuggestions();
+    }
+
+    function renderCounters() {
+      const missionCount = records.filter(r => r.saida !== '—' && (r.entrada === '—' || !r.entrada)).length;
+      const pendingCount = records.filter(r => r.entrada !== '—' && r.entrada && !r.fichaOk).length;
+      const okCount = records.filter(r => r.fichaOk).length;
+      const totalCount = records.length;
+
+      document.getElementById('cnt-mission').textContent = missionCount;
+      document.getElementById('cnt-pending').textContent = pendingCount;
+      document.getElementById('cnt-ok').textContent = okCount;
+      document.getElementById('cnt-total').textContent = totalCount;
+
+      document.getElementById('count-sec-mission').textContent = missionCount;
+      document.getElementById('count-sec-pending').textContent = pendingCount;
+      document.getElementById('count-sec-total').textContent = totalCount;
+    }
+
+    // Section 1: Em Missão
+    function renderSectionMission() {
+      const container = document.getElementById('grid-mission');
+      const missionRecs = records.filter(r => r.saida !== '—' && (r.entrada === '—' || !r.entrada));
+
+      if (missionRecs.length === 0) {
+        container.innerHTML = `<div class="empty-state">Nenhuma viatura em missão no momento.</div>`;
+        return;
+      }
+
+      container.innerHTML = missionRecs.map(r => `
+        <div class="item-card is-mission">
+          <div class="card-left">
+            <span class="card-plate">${r.plate}</span>
+            <span class="badge-type ${VEHICLE_TYPES[r.type]?.badgeClass || 'badge-C'}">${r.type}</span>
+            <div class="card-times">
+              <span class="time-tag">Saída: <span class="time-val">${r.saida}</span></span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-card-act btn-act-return" onclick="registerReturn('${r.id}')">✓ Entrada</button>
+            <button class="btn-card-act btn-act-edit" onclick="openEditModal('${r.id}')">✏️</button>
+            ${createInlineDeleteBtn(r.id)}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Section 2: Pendentes de Ficha
+    function renderSectionPending() {
+      const container = document.getElementById('grid-pending');
+      const pendingRecs = records.filter(r => r.entrada !== '—' && r.entrada && !r.fichaOk);
+
+      if (pendingRecs.length === 0) {
+        container.innerHTML = `<div class="empty-state">Nenhuma viatura aguardando OK de ficha.</div>`;
+        return;
+      }
+
+      container.innerHTML = pendingRecs.map(r => `
+        <div class="item-card is-pending">
+          <div class="card-left">
+            <span class="card-plate">${r.plate}</span>
+            <span class="badge-type ${VEHICLE_TYPES[r.type]?.badgeClass || 'badge-C'}">${r.type}</span>
+            ${r.isAvulsa ? '<span class="badge-type badge-avulsa">Avulsa</span>' : ''}
+            <div class="card-times">
+              ${r.saida !== '—' ? `<span class="time-tag">S: <span class="time-val">${r.saida}</span></span>` : ''}
+              <span class="time-tag">E: <span class="time-val">${r.entrada}</span></span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-card-act btn-act-ok" onclick="toggleFichaOk('${r.id}')">✓ OK</button>
+            <button class="btn-card-act btn-act-edit" onclick="openEditModal('${r.id}')">✏️</button>
+            ${createInlineDeleteBtn(r.id)}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Section 3: Ficha Completa do Dia (Table View)
+    function renderTable() {
+      const tbody = document.getElementById('table-body');
+      let filtered = [...records];
+
+      if (currentFilter === 'pending') {
+        filtered = filtered.filter(r => r.entrada !== '—' && r.entrada && !r.fichaOk);
+      } else if (currentFilter === 'mission') {
+        filtered = filtered.filter(r => r.saida !== '—' && (r.entrada === '—' || !r.entrada));
+      } else if (currentFilter === 'ok') {
+        filtered = filtered.filter(r => r.fichaOk);
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Nenhum registro encontrado neste filtro.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(r => {
+        const isMission = r.saida !== '—' && (r.entrada === '—' || !r.entrada);
+        let statusPill = '';
+        if (r.fichaOk) {
+          statusPill = `<span class="status-pill ok">OK</span>`;
+        } else if (isMission) {
+          statusPill = `<span class="status-pill mission">MISSÃO</span>`;
+        } else {
+          statusPill = `<span class="status-pill pending">PENDENTE</span>`;
+        }
+
+        return `
+          <tr>
+            <td class="mono" style="font-weight: 800; color: #fff;">${r.plate}</td>
+            <td><span class="badge-type ${VEHICLE_TYPES[r.type]?.badgeClass || 'badge-C'}">${r.type}</span></td>
+            <td class="mono">${r.saida}</td>
+            <td class="mono">${r.entrada}</td>
+            <td>${statusPill}</td>
+            <td style="text-align: right;">
+              <div style="display: inline-flex; gap: 4px;">
+                <button class="btn-card-act ${r.fichaOk ? 'btn-modal-cancel' : 'btn-act-ok'}" style="height: 26px; font-size: 10px;" onclick="toggleFichaOk('${r.id}')">
+                  ${r.fichaOk ? 'Desfazer' : '✓ OK'}
+                </button>
+                <button class="btn-card-act btn-act-edit" style="height: 26px;" onclick="openEditModal('${r.id}')">✏️</button>
+                ${createInlineDeleteBtn(r.id, true)}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // --- ACTIONS ---
+    function registerReturn(id) {
+      const index = records.findIndex(r => r.id === id);
+      if (index !== -1) {
+        const nowTime = getHHMM();
+        records[index].entrada = nowTime;
+        records[index].fichaOk = false;
+        saveStorage();
+        renderAll();
+        showToast(`Entrada registrada para ${records[index].plate} às ${nowTime}`, 'success');
+      }
+    }
+
+    function toggleFichaOk(id) {
+      const index = records.findIndex(r => r.id === id);
+      if (index !== -1) {
+        records[index].fichaOk = !records[index].fichaOk;
+        saveStorage();
+        renderAll();
+        showToast(records[index].fichaOk ? `Ficha OK para ${records[index].plate}` : `Status alterado para Pendente (${records[index].plate})`, 'info');
+      }
+    }
+
+    // Bulk OK with inline 2-step confirmation
+    let bulkOkConfirmTimeout = null;
+    function setupBulkOkButton() {
+      const btn = document.getElementById('btn-bulk-ok');
+      btn.addEventListener('click', () => {
+        if (btn.classList.contains('confirming')) {
+          // Execute Bulk OK
+          clearTimeout(bulkOkConfirmTimeout);
+          btn.classList.remove('confirming');
+          btn.textContent = '✓ OK em Todos';
+
+          let count = 0;
+          records.forEach(r => {
+            if (r.entrada !== '—' && r.entrada && !r.fichaOk) {
+              r.fichaOk = true;
+              count++;
+            }
+          });
+          saveStorage();
+          renderAll();
+          showToast(`Marcados como OK: ${count} registros pendentes`, 'success');
+        } else {
+          // Step 1: Confirmation prompt state
+          btn.classList.add('confirming');
+          btn.textContent = '⚠️ Confirmar OK em Todos?';
+          bulkOkConfirmTimeout = setTimeout(() => {
+            btn.classList.remove('confirming');
+            btn.textContent = '✓ OK em Todos';
+          }, 3500);
+        }
+      });
+    }
+
+    // Inline Delete Action (2-step confirmation)
+    const deleteTimeouts = {};
+    function createInlineDeleteBtn(id, isSmall = false) {
+      return `<button id="del-btn-${id}" class="btn-card-act btn-act-delete" style="${isSmall ? 'height: 26px;' : ''}" onclick="handleInlineDelete('${id}', ${isSmall})">🗑️</button>`;
+    }
+
+    function handleInlineDelete(id, isSmall) {
+      const btn = document.getElementById(`del-btn-${id}`);
+      if (!btn) return;
+
+      if (btn.classList.contains('confirming')) {
+        // Execute Delete
+        clearTimeout(deleteTimeouts[id]);
+        delete deleteTimeouts[id];
+        records = records.filter(r => r.id !== id);
+        saveStorage();
+        renderAll();
+        showToast('Registro apagado!', 'info');
+      } else {
+        // Step 1
+        btn.classList.add('confirming');
+        btn.textContent = '⚠️ Confirmar?';
+        deleteTimeouts[id] = setTimeout(() => {
+          if (btn) {
+            btn.classList.remove('confirming');
+            btn.textContent = '🗑️';
+          }
+          delete deleteTimeouts[id];
+        }, 3500);
+      }
+    }
+
+    // --- EDIT MODAL ---
+    function openEditModal(id) {
+      const rec = records.find(r => r.id === id);
+      if (!rec) return;
+
+      editingId = id;
+      document.getElementById('edit-plate').value = rec.plate;
+      document.getElementById('edit-saida').value = rec.saida !== '—' ? rec.saida : '';
+      document.getElementById('edit-entrada').value = rec.entrada !== '—' ? rec.entrada : '';
+      document.getElementById('edit-ok').checked = rec.fichaOk;
+
+      // Select type button in modal
+      document.querySelectorAll('.edit-type-btn').forEach(btn => {
+        if (btn.dataset.type === rec.type) {
+          btn.classList.add('selected');
+        } else {
+          btn.classList.remove('selected');
+        }
+      });
+
+      openModal('modal-edit');
+    }
+
+    function saveEditModal() {
+      if (!editingId) return;
+      const index = records.findIndex(r => r.id === editingId);
+      if (index === -1) return;
+
+      const plateInput = document.getElementById('edit-plate').value.trim().toUpperCase().replace('-', '');
+      if (!plateInput || plateInput.length < 5) {
+        showToast('Placa inválida!', 'error');
+        return;
+      }
+
+      const selectedTypeBtn = document.querySelector('.edit-type-btn.selected');
+      const newType = selectedTypeBtn ? selectedTypeBtn.dataset.type : 'C';
+      const saidaVal = document.getElementById('edit-saida').value.trim() || '—';
+      const entradaVal = document.getElementById('edit-entrada').value.trim() || '—';
+      const isOk = document.getElementById('edit-ok').checked;
+
+      records[index].plate = plateInput;
+      records[index].type = newType;
+      records[index].saida = saidaVal;
+      records[index].entrada = entradaVal;
+      records[index].fichaOk = isOk;
+      if (saidaVal === '—') records[index].isAvulsa = true;
+
+      plateMemory[plateInput] = newType;
+
+      saveStorage();
+      closeModal('modal-edit');
+      renderAll();
+      showToast('Registro atualizado com sucesso!', 'success');
+    }
+
+    function clearAllRecords() {
+      records = [];
+      saveStorage();
+      closeModal('modal-clear');
+      renderAll();
+      showToast('Ficha do dia totalmente limpa.', 'info');
+    }
+
+    // --- EXPORT & REPORT GENERATION ---
+    function generateTextReport() {
+      const now = new Date();
+      const days = ['DOMINGO', 'SEGUNDA-FEIRA', 'TERÇA-FEIRA', 'QUARTA-FEIRA', 'QUINTA-FEIRA', 'SEXTA-FEIRA', 'SÁBADO'];
+      const dateHeader = `FICHA DE CONTROLE DE VIATURAS — EB\nDATA: ${now.toLocaleDateString('pt-BR')} (${days[now.getDay()]})\n${'='.repeat(56)}\n`;
+      
+      const colHeaders = `PLACA     | TIPO   | SAÍDA | ENTRADA | STATUS\n${'-'.repeat(56)}\n`;
+      
+      const rows = records.map(r => {
+        const p = r.plate.padEnd(9, ' ');
+        const t = (VEHICLE_TYPES[r.type]?.name || r.type).padEnd(6, ' ');
+        const s = (r.saida || '—').padEnd(5, ' ');
+        const e = (r.entrada || '—').padEnd(7, ' ');
+        
+        let st = 'PEND.';
+        if (r.fichaOk) st = 'OK';
+        else if (r.saida !== '—' && (r.entrada === '—' || !r.entrada)) st = 'MISSÃO';
+
+        return `${p} | ${t} | ${s} | ${e} | ${st}`;
+      }).join('\n');
+
+      return dateHeader + colHeaders + (rows || 'Nenhum registro lançado.');
+    }
+
+    function copyFormattedReport() {
+      const reportStr = generateTextReport();
+      copyToClipboard(reportStr, 'Relatório formatado copiado para a área de transferência!');
+    }
+
+    function exportCSV() {
+      if (records.length === 0) {
+        showToast('Nenhum registro para exportar!', 'error');
+        return;
+      }
+
+      let csv = 'Placa;Viatura;Saida;Entrada;Ficha_OK\n';
+      records.forEach(r => {
+        csv += `${r.plate};${r.type};${r.saida};${r.entrada};${r.fichaOk ? 'TRUE' : 'FALSE'}\n`;
+      });
+
+      // Try automatic download
+      try {
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const filename = `Viaturas_EB_${new Date().toISOString().slice(0,10)}.csv`;
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('Download do arquivo CSV iniciado!', 'success');
+      } catch (err) {
+        // Fallback to text modal
+        document.getElementById('csv-fallback-text').value = csv;
+        openModal('modal-csv-fallback');
+      }
+    }
+
+    // --- IMPORT SYSTEM ---
+    function handleFileInput(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        document.getElementById('import-text').value = event.target.result;
+      };
+      reader.readAsText(file);
+    }
+
+    function processImport() {
+      const text = document.getElementById('import-text').value.trim();
+      const legacyDefault = document.getElementById('import-legacy-status').value;
+
+      if (!text) {
+        showToast('Cole o conteúdo ou escolha um arquivo para importar.', 'error');
+        return;
+      }
+
+      const lines = text.split('\n');
+      let importedCount = 0;
+      let countOk = 0;
+      let countPending = 0;
+      let countMission = 0;
+
+      lines.forEach(line => {
+        const clean = line.trim();
+        if (!clean || clean.startsWith('=') || clean.startsWith('-') || clean.toUpperCase().includes('PLACA') || clean.toUpperCase().includes('FICHA DE CONTROLE')) {
+          return; // Skip headers & dividers
+        }
+
+        let plate = '', type = 'C', saida = '—', entrada = '—', fichaOk = false;
+
+        if (clean.includes(';')) {
+          // CSV Format: Placa;Viatura;Saida;Entrada;Ficha_OK
+          const parts = clean.split(';');
+          if (parts.length >= 2) {
+            plate = parts[0].trim().toUpperCase().replace('-', '');
+            type = parts[1].trim().toUpperCase();
+            saida = parts[2] ? parts[2].trim() : '—';
+            entrada = parts[3] ? parts[3].trim() : '—';
+            
+            const statusRaw = parts[4] ? parts[4].trim().toUpperCase() : '';
+            if (['TRUE', '1', 'SIM', 'OK', 'CONFERIDO', '✓'].includes(statusRaw)) {
+              fichaOk = true;
+            } else if (['FALSE', '0', 'NAO', 'NÃO', 'PENDENTE'].includes(statusRaw)) {
+              fichaOk = false;
+            } else {
+              fichaOk = (legacyDefault === 'ok' && entrada !== '—');
+            }
+          }
+        } else if (clean.includes('|')) {
+          // Text Report Format: PLACA | VIATURA | SAÍDA | ENTRADA | STATUS
+          const parts = clean.split('|').map(p => p.trim());
+          if (parts.length >= 4) {
+            plate = parts[0].toUpperCase().replace('-', '');
+            
+            // Map Viatura text to code
+            const vText = parts[1].toUpperCase();
+            if (vText.includes('ÔNIBUS') || vText.includes('ONIBUS') || vText === 'O') type = 'O';
+            else if (vText.includes('VAN') || vText === 'V') type = 'V';
+            else if (vText.includes('OUTRAS') || vText === 'OT') type = 'OT';
+            else type = 'C';
+
+            saida = parts[2] || '—';
+            entrada = parts[3] || '—';
+
+            const stText = parts[4] ? parts[4].toUpperCase() : '';
+            if (['OK', 'CONFERIDO', 'SIM', 'TRUE', '1', '✓', '[OK]'].includes(stText)) {
+              fichaOk = true;
+            } else if (['PEND.', 'PENDENTE', 'FALSE', '0'].includes(stText)) {
+              fichaOk = false;
+            } else {
+              fichaOk = (legacyDefault === 'ok' && entrada !== '—');
+            }
+          }
+        }
+
+        if (plate && plate.length >= 5) {
+          if (!VEHICLE_TYPES[type]) type = 'C';
+          
+          const isMission = (saida !== '—' && (entrada === '—' || !entrada));
+          if (isMission) {
+            fichaOk = false;
+            countMission++;
+          } else if (fichaOk) {
+            countOk++;
+          } else {
+            countPending++;
+          }
+
+          records.push({
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 4),
+            plate: plate,
+            type: type,
+            saida: saida,
+            entrada: entrada,
+            isAvulsa: (saida === '—'),
+            fichaOk: fichaOk,
+            timestamp: Date.now()
+          });
+
+          plateMemory[plate] = type;
+          importedCount++;
+        }
+      });
+
+      if (importedCount > 0) {
+        saveStorage();
+        closeModal('modal-import');
+        document.getElementById('import-text').value = '';
+        document.getElementById('import-file-input').value = '';
+        renderAll();
+        showToast(`${importedCount} registros importados (${countOk} OK, ${countPending} pendentes, ${countMission} em missão)`, 'success');
+      } else {
+        showToast('Nenhum registro válido foi encontrado no texto fornecido.', 'error');
+      }
+    }
+
+    // --- MODALS & TOAST HELPERS ---
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<span>${msg}</span>`;
+
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function copyToClipboard(text, successMsg) {
+      const temp = document.createElement('textarea');
+      temp.value = text;
+      document.body.appendChild(temp);
+      temp.select();
+      try {
+        document.execCommand('copy');
+        showToast(successMsg, 'success');
+      } catch (err) {
+        showToast('Erro ao copiar para a área de transferência', 'error');
+      }
+      document.body.removeChild(temp);
+    }
+  </script>
+</body>
+</html>
